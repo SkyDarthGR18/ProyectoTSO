@@ -1,4 +1,5 @@
 <?php
+
 session_start();
 
 if(!isset($_SESSION['usuario'])){
@@ -8,7 +9,7 @@ if(!isset($_SESSION['usuario'])){
 
 require_once("config/database.php");
 
-if($_SERVER["REQUEST_METHOD"]=="POST"){
+if(isset($_POST["guardar"])){
 
     $nombre=$_POST["nombre"];
     $apellido=$_POST["apellido"];
@@ -16,42 +17,86 @@ if($_SERVER["REQUEST_METHOD"]=="POST"){
     $telefono=$_POST["telefono"];
     $materia=$_POST["materia"];
 
-    $sql="INSERT INTO profesores(nombre,apellido_paterno,correo,telefono,materia)
-          VALUES(?,?,?,?,?)";
+    $sql=$conexion->prepare("
+    INSERT INTO profesores
+    (nombre,apellido_paterno,correo,telefono,materia)
+    VALUES
+    (?,?,?,?,?)");
 
-    $stmt=$conexion->prepare($sql);
-    $stmt->execute([$nombre,$apellido,$correo,$telefono,$materia]);
+    $sql->execute([
+        $nombre,
+        $apellido,
+        $correo,
+        $telefono,
+        $materia
+    ]);
+
 }
 
-$profesores=$conexion->query("SELECT * FROM profesores ORDER BY id DESC")->fetchAll(PDO::FETCH_ASSOC);
+$consulta=$conexion->query("
+SELECT * FROM profesores
+ORDER BY id DESC
+");
+
 ?>
 
 <!DOCTYPE html>
-<html lang="es">
+
+<html>
+
 <head>
-<meta charset="UTF-8">
+
 <title>Profesores</title>
+
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet">
+
 </head>
 
 <body class="container mt-4">
 
-<h2>Registro de Profesores</h2>
+<h2>
+
+Registro de Profesores
+
+</h2>
 
 <form method="POST">
 
-<input class="form-control mb-2" name="nombre" placeholder="Nombre" required>
+<input
+name="nombre"
+class="form-control mb-2"
+placeholder="Nombre"
+required>
 
-<input class="form-control mb-2" name="apellido" placeholder="Apellido" required>
+<input
+name="apellido"
+class="form-control mb-2"
+placeholder="Apellido"
+required>
 
-<input class="form-control mb-2" name="correo" placeholder="Correo" required>
+<input
+type="email"
+name="correo"
+class="form-control mb-2"
+placeholder="Correo"
+required>
 
-<input class="form-control mb-2" name="telefono" placeholder="Teléfono">
+<input
+name="telefono"
+class="form-control mb-2"
+placeholder="Teléfono">
 
-<input class="form-control mb-2" name="materia" placeholder="Materia">
+<input
+name="materia"
+class="form-control mb-2"
+placeholder="Materia">
 
-<button class="btn btn-primary">
-Guardar
+<button
+name="guardar"
+class="btn btn-primary">
+
+Guardar Profesor
+
 </button>
 
 </form>
@@ -76,27 +121,39 @@ Guardar
 
 </tr>
 
-<?php foreach($profesores as $p){ ?>
+<?php
+
+while($fila=$consulta->fetch(PDO::FETCH_ASSOC)){
+
+?>
 
 <tr>
 
-<td><?=$p["id"]?></td>
+<td><?=$fila["id"]?></td>
 
-<td><?=$p["nombre"]?></td>
+<td><?=$fila["nombre"]?></td>
 
-<td><?=$p["apellido_paterno"]?></td>
+<td><?=$fila["apellido_paterno"]?></td>
 
-<td><?=$p["correo"]?></td>
+<td><?=$fila["correo"]?></td>
 
-<td><?=$p["telefono"]?></td>
+<td><?=$fila["telefono"]?></td>
 
-<td><?=$p["materia"]?></td>
+<td><?=$fila["materia"]?></td>
 
 </tr>
 
 <?php } ?>
 
 </table>
+
+<a
+href="dashboard.php"
+class="btn btn-secondary">
+
+Regresar
+
+</a>
 
 </body>
 
